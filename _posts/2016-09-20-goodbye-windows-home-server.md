@@ -5,10 +5,10 @@ categories: backup
 ---
 If you care about your digital stuff, you should back it up - if you don't, you're living on borrowed time.
 [Scott Hanselman](http://www.hanselman.com/blog/TheComputerBackupRuleOfThree.aspx) sums it up better than I could.
+Until recently I've been using [Windows Home Server](https://en.wikipedia.org/wiki/Windows_Home_Server), but now I'm following a different path.
 <!--more-->
 
 # Windows Home Server - good
-Until recently I've been using [Windows Home Server](https://en.wikipedia.org/wiki/Windows_Home_Server).
 For homes like mine with multiple (Windows) computers, WHS had some great features:
 
 - shared folders with user-level authorisation and multi-disk redundancy
