@@ -14,8 +14,10 @@ layout: default
         <h2>
           <a class="post-link" href="{{ post.url | prepend: site.baseurl }}">{{ post.title | escape }}</a>
         </h2>
-        {{post.excerpt}}
-        <a href="{{ post.url | prepend: site.baseurl }}">More...</a>
+        {% if post.content contains '<!--more-->' %}
+          {{ post.content | split:'<!--more-->' | first }}
+          <br/><a href="{{ post.url | prepend: site.baseurl }}">More...</a>
+        {% endif %}
       </li>
     {% endfor %}
   </ul>
