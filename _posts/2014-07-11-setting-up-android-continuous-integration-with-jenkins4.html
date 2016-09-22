@@ -1,0 +1,69 @@
+---
+layout: post
+title: "Setting up Android Continuous Integration with Jenkins"
+date: 2014-07-11 16:31:00 +1200
+published: true
+tags: ["Android", "Development"]
+alias: ["/blog/post/2014/07/11/Setting-up-Android-Continuous-Integration-with-Jenkins4.aspx", "/blog/post/2014/07/11/setting-up-android-continuous-integration-with-jenkins4.aspx"]
+---
+<!-- more -->
+<p>I've recently started working on my own Android app and, as I would do on any non-trivial .Net project, I wanted to setup a CI server to build and run my tests. It turns out to be reasonably straightforward...</p>
+<h2>Install Jenkins</h2>
+<p>Other CI software is available of course, but my requirements are fairly simple and Jenkins provides everything I need in a free, open source solution. I just installed the latest and greatest Windows package from <a href="http://jenkins-ci.org/" target="_blank">jenkins-ci.org</a>.</p>
+<p>Jenkins runs as a Windows service (named Jenkins), with a web UI (on port 8080 by default):</p>
+<p><img src="/images//2014/07/JenkinsDashboardSmall.png" alt="" /></p>
+<h4>Run Jenkins as a different user</h4>
+<p>By default the Jenkins service runs as the local system account. However, we will need to use some environment variables and ssh keys later so I created a new user (<strong>builduser</strong>) and changed the Jenkins service to run as this account.&nbsp;</p>
+<p><img src="/images//2014/07/JenkinsAsUser.png" alt="" /></p>
+<h2>Install the Android prerequisites</h2>
+<p>As per the <a href="http://developer.android.com/sdk/index.html" target="_blank">Android SDK</a>&nbsp;requirements, you need to install the <a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html" target="_blank">JDK</a> and <a href="http://ant.apache.org/" target="_blank">Ant</a> (just go for the latest version of each).</p>
+<h2>Install the Android SDK and platforms</h2>
+<p>If this is just a build server you don't need the full Eclipse/ADT package, so on the <a href="http://developer.android.com/sdk/index.html" target="_blank">Android SDK</a> page click <strong>GET THE SDK FOR AN EXISTING IDE</strong> -&gt;&nbsp;<strong>Download the stand-alone Android SDK Tools for Windows</strong>; then run the installer.</p>
+<p>Once the SDK is installed you will need to <a href="http://developer.android.com/sdk/installing/adding-packages.html" target="_blank">add packages</a> for the latest SDK tools and the Android platforms you want to target:</p>
+<p><img src="/images//2014/07/AndroidSDKManager.png" alt="" /></p>
+<h2>Install source control tools</h2>
+<p>I'm using a git repository hosted at <a href="https://bitbucket.org/" target="_blank">Bitbucket</a>, so Jenkins needs the tools to access the repository. I installed the <a href="http://git-scm.com/download/win" target="_blank">latest release of git for Windows</a>, and you will also need to add both the <a href="https://wiki.jenkins-ci.org/display/JENKINS/Git+Plugin" target="_blank">Git</a>&nbsp;and <a href="https://wiki.jenkins-ci.org/display/JENKINS/Git+Client+Plugin" target="_blank">Git client</a> plugins for Jenkins - go to Manage Jenkins -&gt; Manage Plugins from the Dashboard.</p>
+<h2>Setup environment variables</h2>
+<p>To get all the tools working correctly I needed to setup the following System-level environment variables:</p>
+<ul>
+<li><strong>GIT_HOME</strong> = &lt;path_to_git_installation&gt;\cmd (not \bin)</li>
+<li><strong>JAVA_HOME</strong> = &lt;path_to_JDK&gt; (eg. D:\Tools\Java\jdk1.8.0_05)</li>
+<li><strong>Path</strong> - add Ant bin path (eg. D:\Tools\apache-ant-1.9.4\bin) and the git cmd path (same as GIT_HOME above)</li>
+</ul>
+<p>You will also need to login as the&nbsp;<strong>builder</strong> user and add a user environment variable: <strong>HOME</strong> = &lt;user_directory&gt; (eg. C:\Users\builder).</p>
+<h2>Setup SSH for Bitbucket</h2>
+<h4>Create key pair</h4>
+<p>While logged in as your Jenkins user (<strong>builder</strong>), generate an RSA key pair (Jenkins will use this to communicate with Bitbucket):</p>
+<pre class="brush: plain; first-line: 1; tab-size: 4; toolbar: false; ">ssh-keygen -t rsa</pre>
+<p>(Note that ssh-keygen is in the bin folder of your git installation).</p>
+<p>This will generate files id_rsa and id_rsa.pub in C:\Users\builder\.ssh (assuming you set the HOME environment variable as above).</p>
+<h4>Add the server to your trusted list</h4>
+<p>The first time you connect to a new git server you are prompted to continue; if this happens during a Jenkins build it will just hang, waiting for a response that will never come. To avoid this we need to do it from a command line, which will add the server to the trusted list and won't prompt again:</p>
+<pre class="brush: plain; first-line: 1; tab-size: 4; toolbar: false; ">ssh -T git@bitbucket.org</pre>
+<p>(again, ssh.exe is in the git bin folder).</p>
+<p>This will generate a known_hosts file in Git\.ssh, which you can copy to your user's .ssh folder (C:\Users\builder\.ssh).</p>
+<h2>Add your key to Bitbucket</h2>
+<p>Your build server will not be logging in to Bitbucket as a user, it will be using the above key to access the repository - Bitbucket calls this a deployment key. In the repository you want to access, click on <strong>Settings</strong> -&gt; <strong>Deployment keys</strong> and <strong>Add Key</strong>. Give it a name (eg. BuildServer) and then copy the contents of the id_ras.pub file generated above into the Key.</p>
+<h2>Preparing your Android project</h2>
+<p>We will be building using Ant, so you need to generate the appropriate build files: within your Android app folder run:</p>
+<pre class="brush: plain; first-line: 1; tab-size: 4; toolbar: false; ">android update project -p .</pre>
+<p>which will generate build.xml, etc.</p>
+<h2>Create a Jenkins job</h2>
+<ul>
+<li>Create a New Item, give it a name and select <strong>Build a free-style software project</strong>.</li>
+<li>Select Git under <strong>Source Code Management</strong> and enter your repository url, eg.&nbsp;git@bitbucket.org:user/myrepo.git</li>
+<li>You can setup Bitbucket to poke your build server on a commit, but because my server is not publicly accessible I just poll instead: under <strong>Build Triggers</strong>, select <strong>Poll SCM</strong>&nbsp;and enter the schedule.</li>
+<li>Add an <strong>Invoke Ant</strong> build step and set your build targets (eg. "clean debug")</li>
+<li>Under Advanced, add an sdk.dir property pointing at your android sdk installation (eg.&nbsp;sdk.dir=D:\\Tools\\Android\\android-sdk); if your build.xml is not in the root of your repository you will also need to set the path to the build file.</li>
+<li>Save the job</li>
+</ul>
+<p>Everything should now be setup, so go ahead and build - hopefully it succeeds!</p>
+<h2>Advanced</h2>
+<p>Obviously this just gives you a basic Build job for your Android project, but you can build on this to:</p>
+<ul>
+<li>Archive your generated .apk (add Post-build action to archive artifacts)</li>
+<li>Invoke different build targets, eg. I have a "ci" target that builds and then runs unit tests</li>
+<li>Publish JUnit test results</li>
+<li>Build a signed .apk for release - I have a separate job that I run manually, which takes the password for my signing key and builds/signs my apk</li>
+<li>Etc...</li>
+</ul>

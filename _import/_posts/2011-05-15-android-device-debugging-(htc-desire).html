@@ -1,0 +1,24 @@
+---
+layout: post
+title: "Android device debugging (HTC Desire)"
+date: 2011-05-15 15:05:00 +1200
+published: true
+tags: ["Android", "Development", "Mobile"]
+alias: ["/blog/post/2011/05/15/Android-device-debugging-(HTC-Desire).aspx", "/blog/post/2011/05/15/android-device-debugging-(htc-desire).aspx"]
+---
+<!-- more -->
+<p>I'm just starting to play around with Android development and, while you can get going with the emulator, I wanted to get setup for debugging my programs actually running on real hardware. It wasn't trivial on my HTC Desire (which wasn't supported out of the box by the standard USB driver) so here are the steps I had to go through - this info is mostly summarizing <a href="http://developer.android.com/guide/developing/device.html">the Android developer docs</a> except where stated.</p>
+<p><strong>Declare the app as debuggable in the Manifest</strong> by adding <em>android:debuggable="true"</em> to the <em>&lt;application&gt;</em> tag</p>
+<p><strong>Turn on USB Debugging on your device</strong> in Settings/Applications/Development</p>
+<p><strong>Modify USB driver android_winusb.inf</strong> (inf is in ...\android-sdk-windows\usb_driver) For the Desire add the following to the [Google.NTx86] and [Google.NTamd64] sections (found in the comments <a href="http://www.flexjunk.com/2010/05/01/installing-htc-incredible-android-sd-drivers/">here</a>)</p>
+<pre class="brush: plain;">;HTC Desire
+%SingleAdbInterface% = USB_Install, USB\VID_0BB4&amp;PID_0C87
+%CompositeAdbInterface% = USB_Install, USB\VID_0BB4&amp;PID_0C87&amp;MI_01
+;</pre>
+<p><code></code>and for the Wildfire (from <a href="http://mwibbels.blogspot.com/2010/07/install-android-usb-driver-for-windows.html">here</a>)</p>
+<pre class="brush: plain;">; HTC Wildfire
+%SingleAdbInterface% = USB_Install, USB\VID_0BB4&amp;PID_0C8B
+%CompositeAdbInterface% = USB_Install, USB\VID_0BB4&amp;PID_0C8B&amp;MI_01
+%SingleBootLoaderInterface% = USB_Install, USB\VID_0BB4&amp;PID_0C8B</pre>
+<p><code></code><strong>Install USB driver</strong> as per the <a href="http://developer.android.com/sdk/win-usb.html#InstallingDriver">standard instructions</a> (but obviously using your modified inf file)</p>
+<p><strong>To verify</strong>, connect your device if it's not already and execute <code>adb devices</code> from the sdk tools directory. You should see your device, as well as the emulator if it is running. While connected, start to debug from Eclipse - if the emulator is also running you get to choose whether to debug on your hardware or the emulator.</p>

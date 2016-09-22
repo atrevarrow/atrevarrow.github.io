@@ -1,0 +1,39 @@
+---
+layout: post
+title: "WCF ReliableSession sometimes isn't, erm, reliable"
+date: 2009-01-31 00:01:00 +1300
+published: true
+tags: []
+alias: ["/blog/post/2009/01/31/WCF-ReliableSession-sometimes-isnt-erm-reliable.aspx", "/blog/post/2009/01/31/wcf-reliablesession-sometimes-isnt-erm-reliable.aspx"]
+---
+<!-- more -->
+<p>&hellip;at least not how I thought&hellip;</p>
+<p>The project I&rsquo;m currently working on consists of a WCF service that controls/monitors a machine on a factory production line, and a UI that displays it&rsquo;s state and allows setup of the various machine parameters. Any changes in the configuration are pushed from the UI via WCF to the service, and updates to the current state (whether the machine is running, various counters, etc.) are sent back from the service via WCF&rsquo;s callback channel mechanism.</p>
+<p>Now, this all worked fine and dandy in my test setup &ndash; I had the thing running for hours with no problems at all, even when the updates were coming thick and fast. However, the first day of testing at my customer&rsquo;s factory and <strong>disaster</strong>: after a few minutes of the machine being idle, my customer tried to make a change to the configuration &ndash; which promptly threw an exception and died :(</p>
+<p>We restarted, tried to make the same change and all worked fine. Then, after a few more minutes another change. Bang, same exception. Damn.</p>
+<p>After a bit of hunting around I worked out what the problem was: the communication channel bindings used in WCF (<code>netTcpBinding</code>, <code>wsDualHttpBinding</code>, etc.) have a <code>reliableSession</code> that has an <code>inactivityTimeout</code> value &ndash; if there is no communication over the channel for that amount of time the channel is closed. My problem was that in my test setup I never left the machine idle, there was always data flying backwards and forwards between the service and the UI. However, in the real factory, the machine was not running, therefore there was no update of the state information, and hence no communication between service and UI. The channel was silently closed down and, when the subsequent configuration change was sent down the (now closed) channel, the exception occurred.</p>
+<p>So, the simple answer is to increase the <code>inactivityTimeout</code> value to a ridiculously high value, eg. 999 years. This would have probably been good enough. However, there is still always a chance that the session could go down for another reason. So, I took a 2 pronged approach: firstly, I introduced a UI-service heartbeat every 30 seconds; and secondly, each attempt from the UI to send something to the service is wrapped in a method that spots the channel has been pulled from under us and reconnects before retrying. Eg.</p>
+<pre class="brush: c-sharp;">public void SetMachineProperties(MachineProperty[] aProperties)
+{
+  ExecuteActionReconnectingIfNecessary(
+    delegate
+    {
+      _Client.SetMachineProperties(aProperties);
+    });
+}</pre>
+<p>where <code>ExecuteActionReconnectingIfNecessary</code> looks like this:</p>
+<pre class="brush: c-sharp;">private void ExecuteActionReconnectingIfNecessary(Action aAction)
+{
+  try
+   {
+    aAction();
+  }
+  catch (CommunicationException ex)
+  {
+    // Attempt to reconnect - this may also throw an exception, but we don't want to catch that
+    Connect();
+    // Try again
+    aAction();
+   }
+}</pre>
+<p>This seems to work fine. Yay!</p>

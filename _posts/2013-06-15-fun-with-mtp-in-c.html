@@ -1,0 +1,40 @@
+---
+layout: post
+title: "Fun with MTP in C#"
+date: 2013-06-15 17:10:00 +1200
+published: true
+tags: ["Development", "TDD"]
+alias: ["/blog/post/2013/06/15/Fun-with-MTP-in-C.aspx", "/blog/post/2013/06/15/fun-with-mtp-in-c.aspx"]
+---
+<!-- more -->
+<p><a href="https://bitbucket.org/derekwilson/podcastutilities">Podcast Utilities</a>, the open source set of podcast tools I work on with my friend <a href="http://derekwilson.net/derekblog/">Derek</a>, has been pretty stable for a while now: all the use-cases we wanted were pretty much done, and we've both been happily using it to download and sync podcasts. However, it only worked with Mass Storage devices, ie. things that looked like external hard drives when connected to your PC, and we knew at some point we would possibly have to do something with <a href="http://en.wikipedia.org/wiki/Media_Transfer_Protocol">MTP</a> devices. But like any good, lazy developers we weren't going to do it until we had to. And then I bought an HTC One S...</p>
+<p>The One S came with Ice Cream Sandwich which was nice, and had Mass Storage support - all was well. A couple of weeks after I bought it I got the software update notification and happily downloaded it. I thought it was just a small point-release, I didn't know I was getting Jellybean until I'd installed it so it was a pleasant surprise - but once I connected it to my PC I realised that it was MTP only. Doh! Suddenly implementing MTP support became a slightly higher priority.</p>
+<h2>MTP, WPD, OMG</h2>
+<p>We looked around for how to do MTP in the .Net world and realised that we were going to have to do it ourselves. There were a couple of example libraries knocking around but they were either primitive, lacking support, or pretty dead.</p>
+<p>Microsoft's support for MTP comes via the <a href="http://msdn.microsoft.com/en-us/library/dd389005(v=vs.85).aspx">Windows Portable Devices (WPD) API</a>. Accessing COM from .Net is normally fairly straightforward via COM interop, but for WPD you need to do some tweaking to fix up some marshalling problems.</p>
+<p>The information below was gleaned from <a href="http://blogs.msdn.com/b/wpdblog/archive/2007/11/26/creating-a-temperature-sensor-gadget-for-windows-sidebar.aspx">WPD Team Blog</a>, <a href="http://blogs.msdn.com/b/dimeby8/archive/2006/12/05/enumerating-wpd-devices-in-c.aspx">dimeby8's blog</a>&nbsp;and&nbsp;<a href="http://stackoverflow.com/questions/6162046/enumerating-windows-portable-devices-in-c-sharp">StackOverflow</a>&nbsp;- they are great resources but they don't all have the correct instructions for how to fix the marshalling.</p>
+<h4>Step by &nbsp;step</h4>
+<p>Add references to&nbsp;the PortableDeviceTypes and PortableDeviceApi&nbsp;type libraries:</p>
+<p><img src="/images/2013/6/AddPortableDevicesReferences.png" alt="" /></p>
+<p>Once you've built your project, this generates the interop assemblies that do the magic allowing the COM APIs to be called from .Net. However, in this case, some of the marshalling information is incorrect so we have to fix that.</p>
+<p>Copy the generated&nbsp;Interop.PortableDeviceApiLib.dll from obj\Debug to another folder (I created one called Interop), and disassemble it using:</p>
+<pre class="brush: plain;">ildasm Interop.PortableDeviceApiLib.dll /out:pdapi.il</pre>
+<p>Open pdapi.il in your favourite text editor and make the following changes:</p>
+<p>Replace all instances of</p>
+<pre class="brush: c-sharp;">GetDevices([in][out] string&amp;  marshal( lpwstr) pPnPDeviceIDs,</pre>
+<p>with</p>
+<pre class="brush: c-sharp;">GetDevices([in][out] string[]  marshal( lpwstr[]) pPnPDeviceIDs,</pre>
+<p>Then for all instances of <em>GetDeviceFriendlyName</em>,&nbsp;<em>GetDeviceDescription</em> and&nbsp;<em>GetDeviceManufacturer</em> we need to fix the marshalling for the unicode strings they return by changing</p>
+<pre class="brush: c-sharp;">[in][out] uint16&amp;</pre>
+<p>to</p>
+<pre class="brush: c-sharp;">[in][out] uint16[] marshal([])</pre>
+<p><em>[Note that these are the only changes I have had to make so far, but there may be others if you are using more of the API than us]</em></p>
+<p>Now rename the original interop dll and reassemble the fixed one using</p>
+<pre class="brush: plain;">ilasm pdapi.il /dll /output=Interop.PortableDeviceApiLib.dll</pre>
+<p>Make sure you use the correct version of ilasm, eg. if you are building a .net 4.0 project use the one in</p>
+<pre class="brush: plain;">C:\Windows\Microsoft.NET\Framework64\v4.0.30319</pre>
+<p>Finally, remove the original reference to&nbsp;PortableDeviceApiLib and add a reference to your new&nbsp;Interop.PortableDeviceApiLib.dll assembly.</p>
+<h2>Adding MTP support to PodcastUtilities - TDD really works</h2>
+<p>When we originally started on PodcastUtilites we knew we wanted to abstract the file system for unit-testing - most of what the tools do is moving files around and we needed to be able to test that without actually touching the real file system. And so Testing helped us Drive a Design that was not coupled to any file system - people often misunderstand TDD as just unit-testing and don't get the benefits it gives in design.</p>
+<p>As a result we already had interfaces for file/directory info (abstractions for System.IO.FileInfo and System.IO.DirectoryInfo), file utilities (Exists, Rename, Copy, Delete), etc. and the higher level functionality (Copier, Finder, Purger, etc) just depends on those abstractions. Now all we had to do was create MTP implementations - no small task, admittedly, given the low-level COM API, but we're probably about two thirds done and other than remove a couple of uses of System.IO.Path we have not had to touch the core functionality.</p>
+<p>It's nice when you look back at a design and realise you got it (mostly) right :)</p>

@@ -1,0 +1,81 @@
+---
+layout: post
+title: "Creating a responsive BlogEngine.NET theme"
+date: 2012-03-03 08:53:00 +1300
+published: true
+tags: ["Blog", "BlogEngine.NET", "Development", "HTML5", "Mobile", "Web"]
+alias: ["/blog/post/2012/03/03/Creating-a-responsive-BlogEngineNET-theme.aspx", "/blog/post/2012/03/03/creating-a-responsive-blogenginenet-theme.aspx"]
+---
+<!-- more -->
+<p>I've recently moved over from Wordpress to <a href="http://www.dotnetblogengine.net/">BlogEngine.NET</a> (BE) for my blogging software. I've never really had any major problems with Wordpress, I just never really had the inclination to learn php and I'm much more at home in the .NET world. And as BE is open source I can fix/tweak/contribute to it if I want.</p>
+<p>I wasn't really happy with any of the themes I found for BE - either the colours weren't quite right, or I wanted a slightly different layout. I'd also recently been investigating HTML5/CSS3 and responsive design, and wanted to go this route, but hardly any of the themes were mobile friendly. So I decided to create my own.</p>
+<p>I'll say up-front, I'm not a designer (you've probably already worked that out!) In creating the, ahem, minimalist look you see before you I've definitely stood on the shoulders of giants - the good bits are all theirs, I'm responsible for the rest.</p>
+<h3>First step, use a template</h3>
+<p>I always struggle when starting a new website, I never really know how to get a good base on which to build. But luckily Scott Hanselman recently posted about <a href="http://www.hanselman.com/blog/EasyStepsToAMobilefriendlyResponsiveDesignWithAnEmbeddedYouTubeVideoAndAFluidResize.aspx">creating a mobile-friendly responsive design</a> in which he mentions <a href="http://www.getskeleton.com/">Skeleton</a> and <a href="http://verekia.com/initializr/responsive-template">Initializr</a>, both of which are great boilerplates, encapsulating HTML5 and CSS best practices. I chose Skeleton because it seemed simpler to me and I liked the minimal style.</p>
+<h3>Creating a theme</h3>
+<p>I've never created a blog theme before, for any engine, but <a href="http://blogengine.codeplex.com/wikipage?title=ThemeCreation&amp;referringTitle=Documentation">BlogEngine.NET has a handy tutorial</a> that walks you through the necessary steps. I had to refer to some of the stock themes occasionally for clarification, but most of what I needed was in the tutorial - if you've done any ASP.NET development before you won't have any problems.</p>
+<p>There are really only 4 things you need to create for your theme:</p>
+<ul>
+<li><strong>Master page (site.master)</strong> - This is the master page applied to every blog page. Use this to define your basic layout, etc.</li>
+<li><strong>Post View (PostView.ascx)</strong> - This defines the user control for displaying a single post.</li>
+<li><strong>Comment View (CommentView.ascx)</strong> - The user control for displaying comments.</li>
+<li>Your own CSS to style the elements created above.</li>
+</ul>
+<p>(These are all described in more detail in the tutorial)</p>
+<p>I took the appropriate bits of boilerplate HTML from the sample index.html that came with Skeleton and used them as the start of my site.master:</p>
+<pre class="brush: xml;">&lt;!DOCTYPE html&gt;
+&lt;!--[if lt IE 7 ]&gt;&lt;html class="ie ie6" lang="en"&gt; &lt;![endif]--&gt;
+&lt;!--[if IE 7 ]&gt;&lt;html class="ie ie7" lang="en"&gt; &lt;![endif]--&gt;
+&lt;!--[if IE 8 ]&gt;&lt;html class="ie ie8" lang="en"&gt; &lt;![endif]--&gt;
+&lt;!--[if (gte IE 9)|!(IE)]&gt;&lt;!--&gt;&lt;html lang="en"&gt; &lt;!--&lt;![endif]--&gt;
+&lt;head runat="server" profile="http://gmpg.org/xfn/11"&gt;
+
+	&lt;!-- Mobile Specific Metas
+  ================================================== --&gt;
+	&lt;meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"&gt;
+
+	&lt;!-- CSS
+  ================================================== --&gt;
+	&lt;link rel="stylesheet" href="css/base.css"&gt;
+	&lt;link rel="stylesheet" href="css/skeleton.css"&gt;
+	&lt;link rel="stylesheet" href="css/layout.css"&gt;
+
+	&lt;!--[if lt IE 9]&gt;
+		&lt;script src="http://html5shim.googlecode.com/svn/trunk/html5.js"&gt;&lt;/script&gt;
+	&lt;![endif]--&gt;
+
+	&lt;!-- Favicons
+	================================================== --&gt;
+	&lt;link rel="shortcut icon" href="images/favicon.ico"&gt;
+
+&lt;/head&gt;</pre>
+<p>Make sure you include that mobile-specific meta if you want your responsiveness to work on mobiles (without that my Android phone just scales the full-size site down). Html5shim makes your HTML5 elements work in older versions of IE.</p>
+<p>I then roughed out where everything needed to go and used the Skeleton grid to lay things out on the page, eg. this is the header:</p>
+<pre class="brush: xml;">&lt;div class="header"&gt;
+        &lt;div class="container"&gt;
+            &lt;div class="ten columns"&gt;
+                &lt;h1&gt;&lt;a href="&lt;%=Utils.AbsoluteWebRoot %&gt;"&gt;&lt;%=BlogSettings.Instance.Name %&gt;&lt;/a&gt;&lt;/h1&gt;
+                &lt;h4&gt;&lt;%=BlogSettings.Instance.Description %&gt;&lt;/h4&gt;
+            &lt;/div&gt;
+            &lt;div id="headerextra" class="six columns"&gt;
+                &lt;div id="headerlinks"&gt;
+                    &lt;ul&gt;
+                        &lt;li&gt;&lt;a href="&lt;%=Utils.AbsoluteWebRoot %&gt;page/My-CV.aspx"&gt;CV/Resume&lt;/a&gt;&lt;/li&gt;
+                        &lt;li&gt;&lt;a href="&lt;%=Utils.AbsoluteWebRoot %&gt;contact.aspx"&gt;&lt;%=Resources.labels.contact %&gt;&lt;/a&gt;&lt;/li&gt;
+                        &lt;li&gt;&lt;a href="&lt;%=Utils.AbsoluteWebRoot %&gt;archive.aspx"&gt;&lt;%=Resources.labels.archive %&gt;&lt;/a&gt;&lt;/li&gt;
+                        &lt;li&gt;&lt;a href="&lt;%=Utils.FeedUrl %&gt;" class="feed"&gt;&lt;img src="&lt;%=Utils.RelativeWebRoot %&gt;themes/&lt;%=BlogSettings.Instance.Theme %&gt;/images/rss.png" alt="Subscribe" title="Subscribe" /&gt;&lt;/a&gt;&lt;/li&gt;
+                    &lt;/ul&gt;
+                &lt;/div&gt;
+                &lt;div id="headersearch"&gt;
+                    &lt;blog:SearchBox ID="SearchBox1" runat="server" /&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;</pre>
+<h3>Finishing touches</h3>
+<p>Once I had my layout sorted, I uploaded everything so I could preview the blog. Skeleton comes with a minimal style out the box which I wanted to maintain, so it was just a case of adding slight visual hints to elements such as the header, individual post footers, etc. I also scaled down the base font slightly as it was a tad big for my liking.</p>
+<p>Et voila - a (simple) theme that looks clean and uncluttered (to my eyes), and scales perfectly down to small, phone-size screens.</p>
+<h3>Next steps</h3>
+<p>Once I've tided up the files a bit I'll try to package them up and see if I can get the theme published in one of the BlogEngine.NET galleries.</p>
+<p>One of the drawbacks of Skeleton is it only scales up to 960 pixels because of the grid system it uses - I might try experimenting with Initializr to see if I can make better use of larger screens.</p>
+<p>Aesthetically, I may add a bit of colour. And maybe those headings are a bit big...</p>

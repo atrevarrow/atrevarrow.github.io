@@ -1,0 +1,36 @@
+---
+layout: post
+title: "Accessing Azure from Android 2.2 over HTTPS"
+date: 2014-09-30 10:56:00 +1300
+published: true
+tags: ["Android", "Development"]
+alias: ["/blog/post/2014/09/30/Accessing-Azure-from-Android-22-over-HTTPS.aspx", "/blog/post/2014/09/30/accessing-azure-from-android-22-over-https.aspx"]
+---
+<!-- more -->
+<p>As mentioned in the <a href="/2014/09/01/Android-enabling-gzip-compression-over-HTTPS.html">previous post</a>&nbsp;I access my Azure-hosted service from Android over HTTPS. This worked just fine on my Android 4.1 phone, but when I tested on a version 2.2 emulator I received an error:</p>
+<pre class="brush: plain; first-line: 1; tab-size: 4; toolbar: false; ">javax.net.ssl.SSLException: Not trusted server certificate
+            at org.apache.harmony.xnet.provider.jsse.OpenSSLSocketImpl.startHandshake(OpenSSLSocketImpl.java:371) ~[na:0.0]
+            at org.apache.harmony.luni.internal.net.www.protocol.http.HttpConnection.getSecureSocket(HttpConnection.java:168) ~[na:0.0]
+            ...
+     Caused by: java.security.cert.CertificateException: java.security.cert.CertPathValidatorException: TrustAnchor for CertPath not found.
+            at org.apache.harmony.xnet.provider.jsse.TrustManagerImpl.checkServerTrusted(TrustManagerImpl.java:168) ~[na:0.0]
+            at org.apache.harmony.xnet.provider.jsse.OpenSSLSocketImpl.startHandshake(OpenSSLSocketImpl.java:366) ~[na:0.0]
+    ... 5 common frames omitted
+    Caused by: java.security.cert.CertPathValidatorException: TrustAnchor for CertPath not found.
+            at org.bouncycastle.jce.provider.PKIXCertPathValidatorSpi.engineValidate(PKIXCertPathValidatorSpi.java:149) ~[na:0.0]
+            at java.security.cert.CertPathValidator.validate(CertPathValidator.java:202) ~[na:0.0]
+            at org.apache.harmony.xnet.provider.jsse.TrustManagerImpl.checkServerTrusted(TrustManagerImpl.java:164) ~[na:0.0]
+    ... 6 common frames omitted
+</pre>
+<p>This happens because Android 2.2 (and presumably lower versions too) does not accept the Azure SSL certificate.</p>
+<p>The really simple solution is to just ignore 2.2: according to the <a href="http://developer.android.com/about/dashboards/index.html">Android Dashboards</a> 2.2 now accounts for only 0.7% of the install base (and shrinking). However, the rest of the app works fine (mainly due to the <a href="http://developer.android.com/tools/support-library/index.html">Android Support Library</a>) and so I wanted to fix this if possible.</p>
+<h2>The *bad* solution</h2>
+<p>We can just trust all certificates and that will fix it, right? Well, yes, but you're opening yourself (well, the user) up to man in the middle attacks - if someone can insert themself between the user and the server, returning a valid (and now trusted) certificate, they can intercept all the encrypted HTTPS traffic.</p>
+<p>I'm not even going to post sample code for this.</p>
+<p>Don't do it.</p>
+<h2>The correct solution</h2>
+<p>What we want to do is just trust our known Azure certificate.</p>
+<p>The way we do this is to create a KeyStore containing our certificate, and then use that to create a SSLSocketFactory, which the client then uses when it needs to create the connection to our server.</p>
+<p>Rather than reproduce it completely, the approach is described <a href="http://blogs.msdn.com/b/carlosfigueira/archive/2013/10/21/accessing-azure-mobile-services-from-android-2-2-froyo-devices.aspx">here</a> (as well as a number of questions on StackOverflow, eg. <a href="http://stackoverflow.com/questions/2642777/trusting-all-certificates-using-httpclient-over-https">this one</a>).</p>
+<p>&nbsp;</p>
+<p>I hope the 0.7% of my users are happy :)</p>

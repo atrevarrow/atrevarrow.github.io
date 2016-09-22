@@ -1,0 +1,53 @@
+---
+layout: post
+title: "Android: enabling gzip compression over HTTPS"
+date: 2014-09-01 12:29:00 +1200
+published: true
+tags: ["Android", "Development"]
+alias: ["/blog/post/2014/09/01/Android-enabling-gzip-compression-over-HTTPS.aspx", "/blog/post/2014/09/01/android-enabling-gzip-compression-over-https.aspx"]
+---
+<!-- more -->
+<p>I have an Android app that talks to a Web API hosted in Azure to retrieve blobs of JSON - this works just fine out of the box using the following client code to initiate the connection:</p>
+<pre class="brush: java; first-line: 1; tab-size: 4; toolbar: false; ">private InputStream openUrlStream(String url) throws IOException {
+    URLConnection connection = new URL(url).openConnection();
+    return connection.getInputStream();
+}
+</pre>
+<p>Now, because my JSON can get reasonably large I wanted to enable gzip compression. I get this for free on the server, so how do I modify the client to turn this on...?</p>
+<p>It turns out that the <em>HttpURLConnection</em> created for you by <em>URL.openConnection</em>&nbsp;already adds the correct header to the request:</p>
+<pre class="brush: plain; first-line: 1; tab-size: 4; toolbar: false; ">Accept-Encoding: gzip</pre>
+<p>and automatically decompresses the response for you (the stream returned from <em>connection.getInputStream</em> is actually a <em>GZIPInputStream</em>).</p>
+<p>Excellent. I hooked up Fiddler as a proxy for the Android emulator to verify, and I could see the gzip header in the request and the compressed response; I could also see much smaller chunks of data in my Azure dashboard.</p>
+<h2>The spanner in the works</h2>
+<p>So now, like a good Web API citizen, I wanted to secure my connections using https - that's fine I thought, I should just need to change the url to https:// and it will all just carry on working. Erm, no.</p>
+<p>First off, the Azure certificate is not in the certificate store on older versions of Android (that's going to be my next blog post!)</p>
+<p>The second problem is that the <em>HttpsURLConnection</em> created for you for a https:// url does not send the gzip request header. Ok, that's easy enough to add:</p>
+<pre class="brush: java; first-line: 1; tab-size: 4; toolbar: false; ">    connection.setRequestProperty("accept-encoding", "gzip");</pre>
+<p>However, because we have manually added the gzip header we also need to handle decompressing the data. We can do that by wrapping the response stream in our own&nbsp;<em>GZIPInputStream</em>, giving the following full solution:</p>
+<pre class="brush: java; first-line: 1; tab-size: 4; toolbar: false; ">private InputStream openUrlStream(String url) throws IOException {
+    URLConnection connection = new URL(url).openConnection();
+    fixRequestCompression(connection);
+    return fixResponseStreamDecompression(connection, connection.getInputStream());
+}
+
+private InputStream fixResponseStreamDecompression(URLConnection connection, InputStream inputStream) throws IOException {
+    // Because we had to manually request gzip compression, we also have to manually decompress the resultant zipped stream
+    String contentEncoding = connection.getContentEncoding();
+    if ((contentEncoding != null) &amp;&amp; contentEncoding.equalsIgnoreCase("gzip")) {
+        if (!(inputStream instanceof GZIPInputStream)) {
+            return new GZIPInputStream(inputStream);
+        }
+    }
+
+    return inputStream;
+}
+
+private void fixRequestCompression(URLConnection connection) {
+    if (connection instanceof HttpsURLConnection) {
+        // gzip compression is enabled by default for HttpURLConnection, but not Https
+        connection.setRequestProperty("accept-encoding", "gzip");
+    }
+}
+</pre>
+<p>Notice we only add the request header if it's https, and only wrap the response stream if it is actually compressed and not already being decompressed - this allows the code to work unchanged for http urls.</p>
+<p>Et voila, a compressed and secured Web API call.</p>

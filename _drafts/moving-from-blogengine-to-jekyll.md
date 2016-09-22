@@ -21,4 +21,13 @@ Add \_config\_dev.yml
 use bundle exec jekyll serve --drafts -c \_config.yml,\_config\_dev.yml to override url
 (--drafts is so I can see my drafts locally)
 
+Push to github to make sure github pages builds everything correctly
+
 Create a new post, remove original default post
+
+Follow instructions at http://doingthedishes.com/2011/04/14/moving-to-jekyll.html:
+- export old blog to BlogML
+- download App_Data folder (contains images, etc) and move images into /images
+- use script to convert BlogML into md (script is modified version of this: https://gist.github.com/eduncan911/10331596)
+- cd _imports and then: ruby -r './blogml.rb' -e 'Jekyll::BlogML.process()'
+- copy contents of \_imports/\_posts to \_posts

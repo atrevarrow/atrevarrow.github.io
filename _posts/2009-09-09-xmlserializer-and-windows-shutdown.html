@@ -1,0 +1,10 @@
+---
+layout: post
+title: "XmlSerializer and Windows Shutdown"
+date: 2009-09-09 01:09:12 +1200
+published: true
+tags: []
+alias: ["/blog/post/2009/09/09/XmlSerializer-and-Windows-Shutdown.aspx", "/blog/post/2009/09/09/xmlserializer-and-windows-shutdown.aspx"]
+---
+<!-- more -->
+<p>Ok, it’s been a while…</p>  <p>So, I have an application that runs as the windows shell (this is a locked-down PC, controlling a machine in a factory). Like all good applications, it has a number of settings that need to persist between sessions so I save them (using XmlSerializer) when the app closes. This is all hunky-dory in my test setup, ie. when my app is not the shell.</p>  <p>So then I deploy to a real test machine, running as the shell – but on shutdown this doesn’t seem to work, I get a <em>FileNotFoundException </em>when creating an XmlSerializer. Huh?</p>  <p>After a bit of digging, the reason is quite logical (although not immediately obvious) – XmlSerializer generates assemblies dynamically to perform the serialization, and these go into your temp directory. However, Windows purges these directories while shutting down, hence the assemblies disappear (or maybe don’t even get created, I’m not entirely sure), hence FileNotFound.</p>  <p>My workaround is to instantiate the XmlSerializer when I first load my settings and keep it hanging around. That way the assembly gets generated at an appropriate time, and loaded into memory, so when it comes to shutdown time there is no further code generation required. Simples.</p>

@@ -1,0 +1,30 @@
+---
+layout: post
+title: "Speeding up WinPE boot time"
+date: 2009-09-22 09:09:53 +1200
+published: true
+tags: []
+alias: ["/blog/post/2009/09/22/Speeding-up-WinPE-boot-time.aspx", "/blog/post/2009/09/22/speeding-up-winpe-boot-time.aspx"]
+---
+<!-- more -->
+We use <a href="http://en.wikipedia.org/wiki/Windows_Preinstallation_Environment">Windows PE</a> for repaving our Windows XP Embedded environments – it’s basically a DOS replacement that allows us to repartition hard disks.
+
+The machines we’re using it on are not hooked up to a network (although they do have network ports) and consequently Windows PE takes an age to boot up as it seems to always search for a network.
+
+The standard method for starting WinPE is to just call wpeinit from your start script, but it is possible to supply an xml configuration file that allows you to enable/disable various elements of the environment. Specifically, you can disable networking, which is what we want (all we do is repartition the hard disk and copy some files over). So, the xml we need is:
+<pre class="brush: xml;">&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;unattend xmlns="urn:schemas-microsoft-com:unattend"&gt;
+  &lt;settings pass="windowsPE"&gt;
+    &lt;component name="Microsoft-Windows-Setup"
+      processorArchitecture="x86" publicKeyToken="31bf3856ad364e35"
+      language="neutral" versionScope="nonSxS"
+      xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"&gt;
+      &lt;EnableNetwork&gt;false&lt;/EnableNetwork&gt;
+    &lt;/component&gt;
+  &lt;/settings&gt;
+  &lt;cpi:offlineImage cpi:source="" xmlns:cpi="urn:schemas-microsoft-com:cpi" /&gt;
+&lt;/unattend&gt;</pre>
+And then we can supply this to wpeinit:
+<pre class="brush: plain;">wpeinit /unattend=wpeinit_nonetwork.xml</pre>
+This reduces the boot time by 3 minutes which, when you’re doing it a lot, is quite significant.

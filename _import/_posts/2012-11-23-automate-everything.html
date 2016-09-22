@@ -1,0 +1,44 @@
+---
+layout: post
+title: "Automate everything"
+date: 2012-11-23 19:52:00 +1300
+published: true
+tags: ["Development"]
+alias: ["/blog/post/2012/11/23/Automate-everything.aspx", "/blog/post/2012/11/23/automate-everything.aspx"]
+---
+<!-- more -->
+<p>How many times have you seen something like this:</p>
+<blockquote>
+<p><strong>Deployment instructions for Acme website XYZ:</strong></p>
+<p>1 - Grab the files from the latest CI build and copy to server</p>
+<p>2 - Open SQL Server Management Studio</p>
+<p>3 - Execute the CreateDatabase.sql script</p>
+<p>4 - Execute the SeedDatabase.sql script</p>
+<p>5 - Open IIS manager and create a new website called MyGreatWebsite.</p>
+<p>6 - Create a new .Net 4.0 app pool, MyAppPool</p>
+<p>7 - Add a web app App1 in MyGreatWebsite pointing at the copied files, running in MyAppPool.</p>
+<p>8 - some other manual steps (eg. web.config changes, etc.)</p>
+</blockquote>
+<p>Usually the database, website, etc will be created on the first install to a server and then, inevitably, "tweeked" over time (ie. people will semi-randomly mess with settings). So subsequent releases consist of just copying the files and modifying web.configs, etc.</p>
+<p>There are a number of things wrong here...</p>
+<h4>You might have missed something</h4>
+<p>These instructions were probably written while the first deployment was being done and it would be quite easy to miss a step or configuration option. So when someone follows these instructions to commission a new test server 2 months later, they can't figure out why it's not working.</p>
+<h4>Configuration changes will get lost</h4>
+<p><em>When</em> (not <em>if</em>) somebody realises the app pool needs to run as a different user, or the site bindings need to change, or whatever, they have to remember that the deployment instructions also need updating. Trust me, they won't (well, not all of them).</p>
+<h4>Manually following a set of instructions wastes time</h4>
+<p>I don't know about you, but my time could be much better spent writing code than following instructions like these. And, to put it into a business context, how long would it take you to setup a completely new server from scratch if, say, your main data-centre went offline and you had to setup a backup? How much money would the company lose in that time? And how confident would you be that the new setup was actually correct.</p>
+<h2>Don't write instructions, write scripts</h2>
+<p>All of the instructions in the list above can be scripted in batch files, powershell scripts, etc. Here are some useful tools:</p>
+<ul>
+<li><strong>robocopy</strong> - robust file copy, xcopy++</li>
+<li><strong>sqlcmd</strong> - SQL Server command line tool: run scripts, etc. from the command line</li>
+<li><strong>appcmd</strong> - IIS command line administration tool</li>
+<li><strong><a href="http://www.iis.net/downloads/microsoft/web-deploy">Web Deploy</a></strong> - very powerful web site/app deployment tool</li>
+</ul>
+<h2>Make everything repeatable</h2>
+<p>You need to be starting from scratch every time, so make sure you have an equivalent teardown script to delete the database, website, etc. Then, when you run your deploy script you can be confident you've captured every step necessary to rebuild everything. When you've got to this point your deployments are not only simple to do (just run DeployAll.bat) but you won't have that nagging doubt in the back of your mind that you forgot to do step 24...</p>
+<p>This obviously gets more complicated when you have changes to live databases (you can't just delete the DB and start again) - but you can either create matching update/rollback scripts or use DB projects in Visual Studio to handle these for you.</p>
+<h2>Script machine configurations too</h2>
+<p>Ideally you should also be automating the setup of your servers too using something like <a href="http://www.opscode.com/chef/">Chef</a> or&nbsp;<a href="http://puppetlabs.com/">Puppet</a>. But even if not, you can still automate installation of prerequisites such as the .Net runtime, etc. just using simple batch files.</p>
+<h2>Remember...</h2>
+<p>Humans are fallible but these computer things are really good at following sets of simple instructions - lets put them to work.</p>

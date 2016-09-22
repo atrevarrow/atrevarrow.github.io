@@ -1,0 +1,17 @@
+---
+layout: post
+title: "Tabbing around controls in a WPF ListView"
+date: 2008-10-16 08:10:23 +1300
+published: true
+tags: []
+alias: ["/blog/post/2008/10/16/Tabbing-around-controls-in-a-WPF-ListView.aspx", "/blog/post/2008/10/16/tabbing-around-controls-in-a-wpf-listview.aspx"]
+---
+<!-- more -->
+If you have a ListView containing a bunch of child controls, you don’t get Tab key navigation between those controls for free. Derek has stolen my thunder and <a href="http://www.worldolio.com/derek/wordpress/?p=109">posted the full details on how to do this</a>, although I’d like to point out it was me who told him! There are 2 problems with the default behaviour - from Derek’s post:
+<blockquote>
+<ol>
+	<li>When tabbing into the ListView the container for each row of controls (a ListViewItem is treated as a tab stop</li>
+	<li>After tabbing across the first row of controls we then tab to the control that follows the ListView, missing out the other rows in the ListView control.</li>
+</ol>
+</blockquote>
+Essentially you solve 1 by setting the <code>IsTabStop</code> property of the <code>ListView.ItemContainerStyle</code> to <code>False</code>, and 2 by setting the attached <code>KeyboardNavigation.TabNavigation</code> property on the <code>ListView</code> to <code>Continue</code>.

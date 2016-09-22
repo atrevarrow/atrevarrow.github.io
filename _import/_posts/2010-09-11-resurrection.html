@@ -1,0 +1,35 @@
+---
+layout: post
+title: "Resurrection"
+date: 2010-09-11 12:09:00 +1200
+published: true
+tags: ["Blog"]
+alias: ["/blog/post/2010/09/11/Resurrection.aspx", "/blog/post/2010/09/11/resurrection.aspx"]
+---
+<!-- more -->
+<p>No, not in the zombie sense. The blog has been offline for a while now, if you came to visit you just received "Error establishing a database connection". So I finally got around to looking at it today, and it took a little digging but wasn't as painful as I thought it might be. Apparently, the most common causes of this error are:</p>
+<ul>
+<li>Incorrect username or password.</li>
+<li>Incorrect database name</li>
+<li>Incorrect database server hostname.</li>
+</ul>
+<p>These settings are all in wp-config.php:</p>
+<pre class="brush: php;">// ** MySQL settings ** //
+define('DB_NAME', '***');    // The name of the database
+define('DB_USER', '***');     // Your MySQL username
+define('DB_PASSWORD', '***'); // ...and password
+define('DB_HOST', '***');    // 99% chance you won't need to change this value</pre>
+<p><code></code>I could connect to my hosting company's MySql admin tool and it was easy to verify that these were all correct. So, next step was to write a small php script that could connect to the database:</p>
+<pre class="brush: php;">&lt;?php
+$link = mysql_connect('*host*', '*user*', '*password*');
+if (!$link) { die('Could not connect: ' . mysql_error()); }
+echo 'Connected successfully\n';
+$db_selected = mysql_select_db(*database*, $link);
+if (!$db_selected) { die ('Can\'t use foo : ' . mysql_error()); }
+echo 'DB Selected successfully\n';
+$sql = "SHOW TABLES FROM *database*";
+$result = mysql_query($sql);
+if (!$result) { echo "DB Error, could not list tables\n"; echo 'MySQL Error: ' . mysql_error(); exit; }
+while ($row = mysql_fetch_row($result)) { echo "Table: {$row[0]}\n"; }
+mysql_free_result($result); ?&gt;</pre>
+<p><code></code> (PHP is not my strongest language so this was just built from snippets gleaned from t'interweb) This all worked fine. I eventually found <a href="http://wordpress.org/support/topic/error-establishing-a-database-connection-its-not-a-bad-username-or-password">this thread</a> that pointed me in the right direction - my database permissions had somehow been screwed up (don't ask me how), so I reset them to what Wordpress needs and voila. And the first thing I notice is that Wordpress needs upgrading - next post...</p>

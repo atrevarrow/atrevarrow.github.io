@@ -1,0 +1,13 @@
+---
+layout: post
+title: "USB devices can take a while to spin up in Windows - so don't put your shell there!"
+date: 2008-10-23 08:10:00 +1300
+published: true
+tags: []
+alias: ["/blog/post/2008/10/23/USB-devices-can-take-a-while-to-spin-up-in-Windows-so-dont-put-your-shell-there!.aspx", "/blog/post/2008/10/23/usb-devices-can-take-a-while-to-spin-up-in-windows-so-dont-put-your-shell-there!.aspx"]
+---
+<!-- more -->
+<p>As part of my current project (for controlling industrial machines) I need to replace the Windows XP shell with my own application. We have opted to run the app directly from a memory card (for a number of reasons) and this worked fine until I tried it on a fresh machine yesterday. XP itself is installed on a <a href="http://en.wikipedia.org/wiki/Solid-state_drive">Solid State Drive (SSD)</a>, but we have already tested this before and had no problems with it.</p>
+<p>After some trial and error, and a hint provided by <a href="http://groups.google.com/group/microsoft.public.windowsxp.embedded/browse_thread/thread/86c374138163d4b0">this thread</a>, I found the problem: we&rsquo;re using a USB memory card reader and USB devices can take some time to get on their feet, so trying to run our app at start-up was a big race condition. The reason we hadn&rsquo;t spotted this before is pure fluke &ndash; I guess the drive I was using yesterday was just that bit faster than the ones I&rsquo;ve used previously.</p>
+<p>So, quick fix is to use an app on the hard drive as the shell that just pauses for a few seconds (10 seems to work) before running the real shell. A more robust solution will be to poll the memory card (probably every second) until it springs into life.</p>
+<p>Ah well, if this stuff was easy everybody would be doing it :)</p>

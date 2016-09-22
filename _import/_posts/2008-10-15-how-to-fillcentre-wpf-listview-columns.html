@@ -1,0 +1,13 @@
+---
+layout: post
+title: "How to fill/centre WPF ListView columns"
+date: 2008-10-15 16:10:00 +1300
+published: true
+tags: []
+alias: ["/blog/post/2008/10/15/How-to-fillcentre-WPF-ListView-columns.aspx", "/blog/post/2008/10/15/how-to-fillcentre-wpf-listview-columns.aspx"]
+---
+<!-- more -->
+<p>I created a ListView with a column of checkboxes that I wanted centred as below:</p>
+<p>&nbsp;<img style="vertical-align: middle; display: block; margin-left: auto; margin-right: auto;" src="/images/2012/4/centredcheckboxes.gif" alt="" /></p>
+<p>Sounds like it should be easy, but it's a bit more tricky than just setting the <code>CheckBox.HorizontalAlignment="Center"</code> in your <code>CellDataTemplate</code> (which is what I tried first) as you still end up with it left-aligned if you do that.</p>
+<p>I stumbled upon <a href="http://www.interact-sw.co.uk/iangblog/2007/05/30/fill-wpf-listview-columns">this post by Ian Griffiths</a> that explains how to do it. In a nutshell, the problem occurs because the <code>CheckBox</code> control above is actually the child of a <code>ListViewItem</code> container, whose default alignment is <code>Left</code> (which does seem a bit nuts). So, as Ian points out, if you override the <code>ListView.ItemContainerStyle</code> and set its <code>HorizontalContentAlignment</code> to <code>Stretch</code> you can then <code>Center</code> or <code>Stretch</code> your child controls correctly.</p>

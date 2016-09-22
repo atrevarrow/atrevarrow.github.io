@@ -1,0 +1,16 @@
+---
+layout: post
+title: "Unit testing multithreaded code"
+date: 2011-07-31 18:07:00 +1200
+published: true
+tags: ["TDD"]
+alias: ["/blog/post/2011/07/31/Unit-testing-multithreaded-code.aspx", "/blog/post/2011/07/31/unit-testing-multithreaded-code.aspx"]
+---
+<!-- more -->
+<p>Multithreaded development is hard - I've seen lots of intelligent people advise against it, and in theory I would agree. However, in practice it is sometimes unavoidable. So, how do you unit test multithreaded code given its nondeterministic nature? The answer is, <strong>make it determinsitic</strong>. In <a href="https://bitbucket.org/derekwilson/podcastutilities">PodcastUtilities</a> (an open source set of apps/libraries for downloading and managing podcasts) we want to handle multiple simultaneous downloads. We do that using a generic, multithreaded <code>TaskPool</code> class which manages running a set of tasks (implementing <code>ITask</code>) given a maximum number of threads. We spin up as many tasks as we can, then as they complete (freeing up a thread) we spin up the next one. I identified a few scenarios we needed to exercise, eg.:</p>
+<ul>
+<li>When a task completes and there are still outstanding tasks (it should start the next task)</li>
+<li>When the last task completes (the TaskPool's work is done)</li>
+<li>etc.</li>
+</ul>
+<p>But how do you go about testing this given that each task needs to be a separate thread? As we're using an interface for our tasks, <code>ITask</code>, we can create a concrete mock task that we can manipulate into doing things in a deterministic way. So, for example, the test for the first scenario above involves creating 3 mock tasks. Then we tell the task pool to start with 2 threads and check that the first 2 tasks are started (but not the third). We then force one of the tasks to complete and check that the third task gets started. (Obviously we have more tests than this, but I'm sure you get the idea.) It's sort of like testing something that is date/time dependent - you wouldn't use <code>DateTime.Now</code>, you'd abstract the time element and test with different values. In testing the TaskPool we did actually find a race condition - when an individual task completed quick enough the next one may not get started - highlighting the importance of these tests. So, in summary, the way to test your multithreaded, nondeterministic code is to remove the randomness and artificially force sequences of events. It's not going to make writing multithreaded code easy, but it will at least make you think about what happens if X gets executed before Y - because if it can, it probably will at some point so you'd better handle it!</p>

@@ -1,0 +1,10 @@
+---
+layout: post
+title: "Modifying Component Resources in XPECMD"
+date: 2008-10-17 17:10:04 +1300
+published: true
+tags: []
+alias: ["/blog/post/2008/10/17/Modifying-Component-Resources-in-XPECMD.aspx", "/blog/post/2008/10/17/modifying-component-resources-in-xpecmd.aspx"]
+---
+<!-- more -->
+<p>XPECMD is the command-line utility that provides a scriptable interface to the Windows XP Embedded tools. The documentation is ok for the basics, but it does seem like it was a bit of an afterthought and they did miss some things out.</p>  <p>I wanted, as part of my automated build script, to change the desktop background for my deployment image. This involves changing a couple of registry settings, both of which exist as resources on the “Windows API – User” component, but the docs don’t tell you how to modify component resources. I eventually found <a href="http://blogs.msdn.com/embedded/archive/2006/12/07/modifying-component-resources-in-xpecmd.aspx">this post on the Windows Embedded blog</a> that explains how to do it. The hard part is that you can only refer to the resources by index, not display name, so you first have to figure out the indexes by dumping an existing object and trawling through until you find the right one.</p>  <p>Once you have the index, you can do something like:</p>  <p><code>myInst.Resources[169].Properties(&quot;RegValue&quot;) = &quot;c:\wallpaper.bmp&quot;</code></p>  <p>where [169] is the index for the desktop wallpaper registry setting. Let’s hope it doesn’t change!</p>

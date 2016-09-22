@@ -106,32 +106,33 @@ module Jekyll
           ## i'd like to insert a diclaimer that I have imported these posts.
           # note that you'll have to create the file source/_includes/imported_disclaimer.html
           # to render.  i just put a {% blockquote %} with some verbage in it.
-          content = "{% include imported_disclaimer.html %}\r\n" + content
+          # content = "{% include imported_disclaimer.html %}\r\n" + content
 
           ## i'd like to cut off old content from showing in the blog roll. since
           # it requires <!-- more --> to be inserted, we'll just do it at the
           # very top.  someone with more time can make it insert after the first
           # paragraph or something.
           content = "<!-- more -->\r\n" + content
+          #content.sub!(/<\/p>/, "</p><!--more-->")
 
           ## This section is used to cleanup any content data.
           #
-          # Replace /image.axd?picture= with /images/
-          #content.gsub!(/\/image\.axd\?picture\=/, "/images/")
-          # Replace /file.axd?file= with /files/
-          #content.gsub!(/\/file\.axd\?file\=/, "/files/")
+          # Replace /blog/image.axd?picture= with /images/
+          content.gsub!(/\/blog\/image\.axd\?picture\=/, "/images/")
+          # Replace /blog/file.axd?file= with /files/
+          content.gsub!(/\/blog\/file\.axd\?file\=/, "/files/")
           # Replace encoded /'s with real thing
-          #content.gsub!(/\%2f/, "/")
-          content.gsub!(/http:\/\/eduncan911.com/, "")  # remove the domain from my links and images
+          content.gsub!(/\%2f/, "/")
+          content.gsub!(/http:\/\/www.andrewt.com\/blog\/post(.*)\.aspx/, "\\1.html")  # remove the domain and .aspx from my links
           content.gsub!(/\/blog\/thumbnail\//, "/blog/archives/images/")
           # handle my old [PostIcon] mod
-          content.gsub!(/\[PostIcon((.*;)|(.*"))?\]+/i, "<img alt='#{title}' src='")
-          content.gsub!(/\[Posticon((.*;)|(.*"))?\]+/i, "<img alt='#{title}' src='")  # /i doesn't seem to be working
-          content.gsub!(/\[posticon((.*;)|(.*"))?\]+/i, "<img alt='#{title}' src='")  # /i doesn't seem to be working
+          #content.gsub!(/\[PostIcon((.*;)|(.*"))?\]+/i, "<img alt='#{title}' src='")
+          #content.gsub!(/\[Posticon((.*;)|(.*"))?\]+/i, "<img alt='#{title}' src='")  # /i doesn't seem to be working
+          #content.gsub!(/\[posticon((.*;)|(.*"))?\]+/i, "<img alt='#{title}' src='")  # /i doesn't seem to be working
           # [PostIcon Anchor=&quot;Top&quot;]
-          content.gsub!(/\[\/PostIcon\]+/i, "'/>")
-          content.gsub!(/\[\/Posticon\]+/i, "'/>")  # /i doesn't seem to be working
-          content.gsub!(/\[\/posticon\]+/i, "'/>")  # /i doesn't seem to be working
+          #content.gsub!(/\[\/PostIcon\]+/i, "'/>")
+          #content.gsub!(/\[\/Posticon\]+/i, "'/>")  # /i doesn't seem to be working
+          #content.gsub!(/\[\/posticon\]+/i, "'/>")  # /i doesn't seem to be working
 
           ## is this published?
           published = item.attributes["approved"]
@@ -141,8 +142,8 @@ module Jekyll
           puts "timestamp: #{timestamp}"
 
           # post_file_name = "#{timestamp.strftime("%Y-%m-%d")}-#{name}"
-          #filename = "_posts/#{timestamp.strftime("%Y-%m-%d")}-#{name}.html"
-          filename = "_posts/#{timestamp.strftime("%Y-%m-%d")}-#{name}.markdown"
+          filename = "_posts/#{timestamp.strftime("%Y-%m-%d")}-#{name}.html"
+          #filename = "_posts/#{timestamp.strftime("%Y-%m-%d")}-#{name}.markdown"
           puts "filename: #{filename}"
 
           ## Keep old URL
@@ -180,9 +181,7 @@ module Jekyll
 layout: post
 title: "#{title}"
 date: #{timestamp.strftime("%Y-%m-%d %H:%M:%S %z")}
-comments: true
 published: #{published}
-categories: ["blog", "archives"]
 tags: #{tags}
 alias: #{old_url}
 ---
