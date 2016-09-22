@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Goodbye Windows Home Server"
-categories: backup
+tags: backup
 ---
 If you care about your digital stuff, you should back it up - if you don't, you're living on borrowed time.
 [Scott Hanselman](http://www.hanselman.com/blog/TheComputerBackupRuleOfThree.aspx) sums it up better than I could.
