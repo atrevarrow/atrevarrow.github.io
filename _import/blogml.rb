@@ -123,7 +123,7 @@ module Jekyll
           content.gsub!(/\/blog\/file\.axd\?file\=/, "/files/")
           # Replace encoded /'s with real thing
           content.gsub!(/\%2f/, "/")
-          content.gsub!(/http:\/\/www.andrewt.com\/blog\/post(.*)\.aspx/, "\\1.html")  # remove the domain and .aspx from my links
+          content.gsub!(/http:\/\/www.andrewt.com\/blog\/post(.*)\.aspx/){ "#{$1.downcase}.html" }  # remove the domain and .aspx from my links
           content.gsub!(/\/blog\/thumbnail\//, "/blog/archives/images/")
           # handle my old [PostIcon] mod
           #content.gsub!(/\[PostIcon((.*;)|(.*"))?\]+/i, "<img alt='#{title}' src='")

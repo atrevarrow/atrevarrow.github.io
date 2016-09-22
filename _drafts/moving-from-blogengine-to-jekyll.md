@@ -25,7 +25,8 @@ Push to github to make sure github pages builds everything correctly
 
 Create a new post, remove original default post
 
-Follow instructions at http://doingthedishes.com/2011/04/14/moving-to-jekyll.html:
+Follow instructions at http://philippkueng.ch/migrate-from-blogengine-dot-net-to-jekyll.html#comment-1327752341 and
+http://doingthedishes.com/2011/04/14/moving-to-jekyll.html:
 - export old blog to BlogML
 - download App_Data folder (contains images, etc) and move images into /images
 - use script to convert BlogML into md (script is modified version of this: https://gist.github.com/eduncan911/10331596)
