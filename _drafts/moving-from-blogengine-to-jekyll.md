@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "DRAFT - Moving from Blogengine.net to Jekyll"
-categories: jekyll blog
+categories: ["jekyll", "blog"]
 ---
 First, install jekyll (on Windows)
 Jekyll
@@ -32,3 +32,8 @@ http://doingthedishes.com/2011/04/14/moving-to-jekyll.html:
 - use script to convert BlogML into md (script is modified version of this: https://gist.github.com/eduncan911/10331596)
 - cd _imports and then: ruby -r './blogml.rb' -e 'Jekyll::BlogML.process()'
 - copy contents of \_imports/\_posts to \_posts
+
+Custom domain
+- change UK2 DNS: set DNS servers to UK2 defaults (replace ns41.domaincontrol.com/ns42.domaincontrol.com with dns3.uk2.net/dns1.uk2.net/dns2.uk2.net)
+- Setup apex domain (andrewt.com): https://help.github.com/articles/setting-up-an-apex-domain/
+- setup www subdomain (www.andrewt.com): https://help.github.com/articles/setting-up-a-www-subdomain/
