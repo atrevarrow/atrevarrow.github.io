@@ -32,11 +32,13 @@ To setup and run locally on my desktop:
 
 Done:
 - setup required modules
+- metservice rain radar?
+- created module to simulate user presence/absence
 
 Todo:
 - stop display auto shut-off
 - rotate display
 - run MM at startup
 - fitbit module
-- metservice current weather/forecast/rain radar?
-
+- metservice current weather/forecast?
+- use PIR sensor to auto switch-on/off display
