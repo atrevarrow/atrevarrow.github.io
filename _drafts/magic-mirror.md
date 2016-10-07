@@ -32,6 +32,12 @@ Get MMM-MetServiceRadar: in modules, git clone https://atrevarrow@bitbucket.org/
 
 Had to disable overscan (in /boot/config.txt) to ensure full display was used: https://www.raspberrypi.org/forums/viewtopic.php?f=46&t=47152
 
+Auto start MM at boot: https://github.com/MichMich/MagicMirror/wiki/Auto-Starting-MagicMirror
+- sudo npm install -g pm2
+- pm2 startup (shows you the command you need to enter to setup)
+- Create MM start script (mm.sh) and chmod +x mm.sh
+
+
 
 Fitbit: follow setup instructions at https://github.com/SVendittelli/MMM-fitbit:
 - register app at dev.fitbit.com
@@ -43,6 +49,13 @@ Fitbit: follow setup instructions at https://github.com/SVendittelli/MMM-fitbit:
 - add app client_id/client_secret to credentials.ini
 
 - had python errors, so removed Python 3.5.2, installed 2.7.12
+
+
+Squeezebox player:
+- Install squeezelite as a service) as per this page:
+  http://www.winko-erades.nl/index.php?option=com_content&view=article&id=54:installing-squeezelite-player-on-a-raspberry-pi-running-jessie&catid=20:raspbian
+    - sudo apt-get install squeezelite
+    - sudo apt-get install libflac-dev
 
 
 
