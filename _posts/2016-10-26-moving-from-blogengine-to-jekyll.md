@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "DRAFT - Moving from Blogengine.net to Jekyll"
+title:  "Moving from Blogengine.net to Jekyll"
 categories: ["jekyll", "blog"]
 ---
 I have been using [BlogEngine.NET](http://dotnetblogengine.net/) for several years, but it always seemed a hassle (and expense) to have to host a web app and keep it up to date.
