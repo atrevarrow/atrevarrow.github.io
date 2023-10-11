@@ -6,9 +6,9 @@ permalink: /about/
 
 I've been writing software since I was 11 (which was a while ago now) and I still get a kick out of making computerised monkeys do my bidding.
 
-I am a skilled and highly motivated software engineer with almost twenty years of commercial design and programming experience.
+I am a skilled and highly motivated software engineer with thirty years of commercial design and programming experience.
 During this time I have been involved in all aspects of developing software, from initial requirements and design through to testing and support.
-I have worked on a wide range of projects, from device drivers to GUIs, on a variety of platforms.
+I have worked on a wide range of projects - web back-end, web front-end, mobile apps, desktop apps, device drivers, firmware, and everything in between - on a variety of platforms.
 
 For full details please download:
 
